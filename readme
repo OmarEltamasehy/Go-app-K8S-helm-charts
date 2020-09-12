@@ -1,0 +1,164 @@
+
+-----------------------------------------------------------------------------------
+Introduction
+-----------------------------------------------------------------------------------
+This is a sample guide walks you through the process of deploying Go 
+application in a Kubernetes cluster running on minikube using K8S Helm charts.
+
+how to modify the source code for publishing a new application release 
+how to perform rolling updates in Kubernetes using the Helm CLI.
+
+
+-----------------------------------------------------------------------------------
+prerequisites
+-----------------------------------------------------------------------------------
+
+- Docker environment running.
+- Docker Hub account as a registry.
+- Minikube installed on your local computer.
+- kubectl command line (kubectl CLI) installed.
+- Helm v3.x installed.
+
+
+-----------------------------------------------------------------------------------
+Steps
+-----------------------------------------------------------------------------------
+
+To create your own application in Go and deploy it on Kubernetes using Helm 
+you will typically follow these steps:
+
+Step 1: Obtain the application source code,
+Step 2: Build the Docker image,
+Step 3: Publish the Docker image into our docker hub,
+Step 4: Deploy the application in Kubernetes by using Helm Chart,
+Step 5: Update the source code and the Helm chart for publishing a new release.
+step 6: perform rolling updates in Kubernetes using the Helm CLI.
+step 7: perform rolling back in Kubernetes using the Helm CLI.
+
+
+
+Step 1: Obtain the application source code
+==========================================
+
+    $ git clone https://github.com/CloudInn/hello-go
+    $ cd ./hello-go
+
+Step 2: Build the Docker image
+==============================
+
+# note: 
+    - My docker hub accout name = omareltamasehy
+    - app name : hello-go
+
+# Creating multi stage Dockerfile
+    $ touch Dockerfile
+    $ touch readme
+
+# build the docker image by executing the below command:
+    $ docker build -t omareltamasehy/hello-go:0.1.0 .
+
+# check image existance after building by executing the below command:
+    $ docker images omareltamasehy/hello-go
+
+
+
+
+Step 3: Publish the Docker image into our docker hub
+=====================================================
+
+# login to docker hub by the below command:
+    $ docker login
+
+# push the docker image to the docker hub registry by ececting the below command:
+    $ docker push omareltamasehy/hello-go:0.1.0
+
+
+
+Step 4: Deploy the application in Kubernetes by using Helm Chart
+================================================================
+
+# Checking minikube ststus by the below command:
+    $ minikube status
+
+# Run the below command if minikube satus is stopped
+    minikube start
+
+# we consider that helm version 3 is installed as it is different 
+  based on environment
+
+# To create a new chart, you just need run the helm create command, 
+  This creates a scaffold with sample files that you can modify 
+  to build your custom chart, 
+  For this guid, we'll provide you with a ready-made Helm chart.
+
+hello-go
+helm-chart
+|-- Chart.yaml
+|-- values.yaml
+|-- requirment.yaml
+|-- templates
+   |-- NOTES.txt
+   |-- _helpers.tpl
+   |-- deployment.yaml
+   |-- service.yaml
+
+
+
+# After creating the chart we need to perform the following steps:
+    - check docker hub user name, tag in values.yaml file
+    - check templates/deployment.yaml file
+
+# Deploy the Helm chart by executing the following.  
+    $ helm install hello-go-first-release ./helm-chart/
+
+
+# To check the created pods based on our deployment files
+  we can run the below command:
+    $ kubectl get pods
+
+# To check the result of our deployment and to get the ip address and port 
+  to be eble to run our GO app via browser we can run the below command:    
+    $ minikube service list
+    Example: http://192.168.64.2:32012
+
+Finally, Go application has been successfully deployed on Kubernetes.
+
+
+
+
+step 6: perform rolling updates in Kubernetes using the Helm CLI
+===============================================================================
+
+# Rolling updates and rollbacks are important benefits of deploying applications 
+  into a Kubernetes cluster. With rolling updates, devops teams can perform 
+  zero-downtime application upgrades, which is an important consideration 
+  for production environments.
+
+  Helm makes it easy to upgrade the applications with the helm upgrade command,
+  as shown below:
+    - change replica count value from 3 to 5 as an example 
+      $ helm upgrade hello-go-first-release ./helm-chart/
+    - to check the changes run the below command:
+      $ kubectl get pods
+
+
+step 7: perform rolling back in Kubernetes using the Helm CLI
+===============================================================================
+
+# Kubernetes also supports rollbacks, which enable easy reversal to a previous version
+  of an application without a service outage.
+
+Rollbacks are equally simple - just use the helm rollback command 
+and specify the revision number to roll back to. 
+For example, to roll back to the original version of the application (revision 1),
+use the below steps:
+    - first we need to know the current revisions for this app by the below command:
+        $ helm history hello-go-first-release
+
+    - then we can rollback by the below command after choosing the needed revesion:
+        $ helm rollback hello-go-first-release 1
+
+
+-------------------------------------------------------------------------------------
+Thanks for reading
+-------------------------------------------------------------------------------------
